@@ -1,0 +1,17 @@
+{
+  "name": "crowdfund360",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "CrowdFund360 modular financial-control and crowdfunding administration platform.",
+  "scripts": {
+    "test": "node --test",
+    "check:syntax": "node scripts/check-syntax.mjs",
+    "check:architecture": "node tests/architecture/module-boundaries.test.mjs",
+    "validate": "npm run check:syntax && npm test && npm run check:architecture",
+    "dev:api": "node apps/api/src/server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

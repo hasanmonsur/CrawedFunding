@@ -1,0 +1,1959 @@
+openapi: 3.1.0
+info:
+  title: CrowdFund360 API
+  version: 0.1.0
+servers:
+  - url: http://localhost:3000
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: Service is alive
+  /ready:
+    get:
+      summary: Readiness check
+      responses:
+        "200":
+          description: Foundation dependencies are ready or intentionally stubbed
+  /api/v1/platform/context:
+    get:
+      summary: Platform context and safety boundaries
+      responses:
+        "200":
+          description: Product boundaries and role catalogue
+  /api/v1/access-control/roles:
+    get:
+      summary: Role permission catalogue
+      responses:
+        "200":
+          description: Role to permission mapping
+  /api/v1/me:
+    get:
+      summary: Current authenticated user and assignments
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current principal
+        "401":
+          description: Bearer token missing or invalid
+  /api/v1/projects/scope-check:
+    get:
+      summary: Protected project scope authorization probe
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: organizationId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: projectId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Principal can access scoped project
+        "403":
+          description: Scope or permission denied
+  /api/v1/investors/me:
+    get:
+      summary: Current investor profile
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Investor profile with KYC, documents, bank accounts, nominees, and consents
+    patch:
+      summary: Update current investor profile
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Updated profile
+  /api/v1/investors/documents:
+    post:
+      summary: Upload investor document metadata
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Document recorded
+  /api/v1/investors/bank-accounts:
+    post:
+      summary: Add investor bank account
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Bank account recorded with masked response
+  /api/v1/investors/nominees:
+    post:
+      summary: Add nominee or beneficiary
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Nominee recorded
+  /api/v1/investors/consents:
+    post:
+      summary: Record investor consent
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Consent recorded
+  /api/v1/investors/kyc/submit:
+    post:
+      summary: Submit current investor KYC case
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: KYC submitted
+        "409":
+          description: Required evidence is incomplete
+  /api/v1/kyc-cases/queue:
+    get:
+      summary: Compliance KYC review queue
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: KYC queue
+  /api/v1/kyc-cases/investor:
+    get:
+      summary: Compliance investor profile view
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Investor profile for review
+  /api/v1/kyc-cases/start-review:
+    post:
+      summary: Start compliance KYC review
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: KYC case under review
+  /api/v1/kyc-cases/request-information:
+    post:
+      summary: Request additional investor information
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Information required
+  /api/v1/kyc-cases/approve:
+    post:
+      summary: Approve KYC case
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: KYC approved
+        "409":
+          description: Duplicate or unresolved review blocker
+  /api/v1/kyc-cases/reject:
+    post:
+      summary: Reject KYC case
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: KYC rejected
+  /api/v1/investors/holds:
+    post:
+      summary: Place compliance hold on investor
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Hold placed
+  /api/v1/investors/duplicates:
+    get:
+      summary: Detect duplicate investor signals
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Duplicate signals
+  /api/v1/marketplace/projects:
+    get:
+      summary: Public marketplace list of published projects
+      responses:
+        "200":
+          description: Published projects with current offer versions
+  /api/v1/marketplace/offers:
+    get:
+      summary: Published offer disclosure
+      responses:
+        "200":
+          description: Offer snapshot and required disclosures
+        "404":
+          description: Published offer not found
+  /api/v1/marketplace/watchlist:
+    post:
+      summary: Add published project offer to investor watchlist
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Watchlist item recorded
+  /api/v1/investments/suitability:
+    post:
+      summary: Record suitability answers and risk acknowledgement
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Suitability recorded
+        "409":
+          description: Risk acknowledgement missing
+  /api/v1/investments/commitments:
+    post:
+      summary: Reserve an investment commitment
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Commitment reserved
+        "403":
+          description: Investor is not eligible
+        "409":
+          description: Suitability missing or amount outside limits
+  /api/v1/investments/agreements/accept:
+    post:
+      summary: Accept agreement for a reserved commitment
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Commitment moved to awaiting payment
+  /api/v1/investments/portfolio:
+    get:
+      summary: Investor commitment portfolio
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current investor commitments
+  /api/v1/payments/instructions:
+    post:
+      summary: Create idempotent payment instruction/reference for awaiting-payment commitment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: idempotency-key
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Payment instruction issued
+        "400":
+          description: Missing idempotency key
+  /api/v1/payments/proofs:
+    post:
+      summary: Submit investor payment proof metadata
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Payment proof submitted
+  /api/v1/payments/bank-transactions:
+    post:
+      summary: Import idempotent bank transaction
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: idempotency-key
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Bank transaction imported
+  /api/v1/payments/reconciliations:
+    get:
+      summary: List reconciliations for a project
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Reconciliation list
+    post:
+      summary: Match payment instruction to bank transaction
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Matched or exception reconciliation created
+  /api/v1/payments/confirm-cleared:
+    post:
+      summary: Confirm matched payment as cleared
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Commitment moved to reconciled
+        "409":
+          description: Matched reconciliation required
+  /api/v1/payments/exceptions:
+    get:
+      summary: List payment reconciliation exceptions
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Payment exceptions
+  /api/v1/refunds/proposals:
+    post:
+      summary: Propose refund for controlled approval
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Refund proposed
+  /api/v1/refunds/approve:
+    post:
+      summary: Approve refund with four-eyes control
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Refund approved
+        "403":
+          description: Independent approval required
+  /api/v1/operations/budgets:
+    get:
+      summary: List project operation budgets
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Budget list
+    post:
+      summary: Create project budget revision
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Budget revision created
+  /api/v1/operations/budgets/approve:
+    post:
+      summary: Approve budget revision with four-eyes control
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Budget approved
+  /api/v1/operations/budget-variance:
+    get:
+      summary: Budget variance by budget code
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Budget variance list
+  /api/v1/operations/procurements:
+    post:
+      summary: Create procurement request against approved budget
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Procurement requested
+        "409":
+          description: Budget unavailable
+  /api/v1/operations/procurements/approve:
+    post:
+      summary: Approve procurement request with four-eyes control
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Procurement approved
+  /api/v1/operations/expenses:
+    post:
+      summary: Submit expense claim against approved budget or procurement
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Expense submitted
+        "409":
+          description: Budget or procurement control failed
+  /api/v1/operations/expenses/approve:
+    post:
+      summary: Approve expense claim with account-manager control
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Expense approved
+  /api/v1/operations/assets:
+    post:
+      summary: Register asset from approved operational expense
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Asset registered
+  /api/v1/operations/milestones:
+    post:
+      summary: Create milestone plan with deliverables
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Milestone planned
+  /api/v1/operations/milestones/evidence:
+    post:
+      summary: Submit milestone evidence and progress
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Milestone evidence submitted
+  /api/v1/operations/milestones/verify:
+    post:
+      summary: Verify milestone evidence with independent approval
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Milestone verified
+  /api/v1/operations/fund-releases:
+    post:
+      summary: Request fund release for verified milestone
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Fund release requested
+        "409":
+          description: Milestone is not verified
+  /api/v1/operations/fund-releases/finance-approve:
+    post:
+      summary: Finance approval for fund release
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Finance approved
+  /api/v1/operations/fund-releases/compliance-approve:
+    post:
+      summary: Compliance approval for fund release
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Compliance approved
+  /api/v1/operations/fund-releases/release:
+    post:
+      summary: Release funds only after approvals and posted voucher verification
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Funds released
+        "409":
+          description: Approval or posted voucher verification failed
+  /api/v1/operations/project-updates:
+    post:
+      summary: Publish project update for timeline feed
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Project update published
+  /api/v1/operations/timeline:
+    get:
+      summary: Project milestone, release, and update timeline
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Project timeline
+  /api/v1/operations/health:
+    get:
+      summary: Project health score and explanations
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Project health read model
+  /api/v1/operations/milestone-alerts:
+    get:
+      summary: Delayed milestone alerts
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Milestone alert list
+  /api/v1/accounting/accounts:
+    get:
+      summary: Chart of accounts
+      responses:
+        "200":
+          description: Account catalogue
+  /api/v1/accounting/periods:
+    get:
+      summary: Fiscal periods
+      responses:
+        "200":
+          description: Fiscal period catalogue
+  /api/v1/accounting/vouchers:
+    post:
+      summary: Create balanced voucher draft
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Voucher draft created
+        "409":
+          description: Voucher is unbalanced
+  /api/v1/accounting/vouchers/submit:
+    post:
+      summary: Submit voucher for checking
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Voucher submitted
+  /api/v1/accounting/vouchers/check:
+    post:
+      summary: Check voucher with four-eyes control
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Voucher checked
+  /api/v1/accounting/vouchers/authorize:
+    post:
+      summary: Authorize voucher with amount limit
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Voucher authorized
+  /api/v1/accounting/vouchers/post:
+    post:
+      summary: Post authorized voucher to journal
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Voucher posted
+  /api/v1/accounting/vouchers/reverse:
+    post:
+      summary: Reverse posted voucher with equal and opposite entries
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Reversal posted
+  /api/v1/accounting/reports/general-ledger:
+    get:
+      summary: General ledger report
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Journal entries
+  /api/v1/accounting/reports/trial-balance:
+    get:
+      summary: Trial balance report
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Debit and credit balances by account
+  /api/v1/projects:
+    get:
+      summary: List projects visible to current principal
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Scoped project list
+  /api/v1/projects/detail:
+    get:
+      summary: Project detail with sponsor, due diligence, risk, and offers
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Scoped project detail
+  /api/v1/projects/submit-due-diligence:
+    post:
+      summary: Explicit command to submit a draft project for due diligence
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Project moved to due diligence
+        "403":
+          description: Permission denied
+        "409":
+          description: Invalid lifecycle transition
+  /api/v1/projects/due-diligence/complete-item:
+    post:
+      summary: Complete a due-diligence checklist item
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Item completed
+        "403":
+          description: Permission denied
+  /api/v1/projects/due-diligence/findings:
+    post:
+      summary: Record a due-diligence finding
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Finding recorded
+        "403":
+          description: Permission denied
+  /api/v1/projects/risk-assessments:
+    post:
+      summary: Calculate and record explainable project risk assessment
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Risk assessment created
+        "400":
+          description: Invalid risk score
+  /api/v1/projects/submit-review:
+    post:
+      summary: Submit a due-diligence-ready project for internal review
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Project moved to review
+        "409":
+          description: Due diligence or risk assessment missing
+  /api/v1/projects/approve:
+    post:
+      summary: Approve a project after due diligence and risk assessment
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Project approved
+        "409":
+          description: Project is not ready for approval
+  /api/v1/projects/publish:
+    post:
+      summary: Explicit command to publish an approved project
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Project published
+        "403":
+          description: Permission denied
+        "409":
+          description: Invalid lifecycle transition
+  /api/v1/projects/offer-versions:
+    get:
+      summary: List immutable offer versions for a project
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Offer version list
+  /api/v1/vouchers/authorization-preview:
+    post:
+      summary: Validate voucher authorization controls without posting
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Authorization controls pass
+        "403":
+          description: Permission, approval limit, or four-eyes control failed
+  /api/v1/accounting/periods/close-checklist:
+    get:
+      summary: Read the period close checklist and automated gate status
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Close checklist
+        "403":
+          description: Permission denied
+        "404":
+          description: Fiscal period not found
+  /api/v1/accounting/periods/start-close:
+    post:
+      summary: Move a fiscal period into the closing state
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Period is closing
+        "409":
+          description: Invalid period transition
+  /api/v1/accounting/periods/checklist-items:
+    post:
+      summary: Complete a manual close checklist item with evidence
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Checklist item completed
+        "400":
+          description: Evidence reference is required
+        "409":
+          description: Item is automated or close has not started
+  /api/v1/accounting/periods/reopen:
+    post:
+      summary: Reopen a closed period for documented adjustment
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Period reopened for adjustment
+        "409":
+          description: Locked periods cannot be reopened
+  /api/v1/accounting/periods/close:
+    post:
+      summary: Close a period, compute its result, and open the next period
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Period closed with computed result
+        "409":
+          description: Checklist incomplete or ledger unbalanced
+  /api/v1/accounting/periods/lock:
+    post:
+      summary: Lock a closed period under independent approval
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Period locked
+        "403":
+          description: Permission or four-eyes control failed
+        "409":
+          description: Period is not closed
+  /api/v1/accounting/reports/profit-and-loss:
+    get:
+      summary: Profit and loss for a fiscal period
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Period profit and loss
+  /api/v1/accounting/reports/loss-carry-forward:
+    get:
+      summary: Loss carry-forward history for a project
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Loss carry-forward position
+  /api/v1/investments/allocations:
+    post:
+      summary: Allocate a reconciled commitment into project holdings
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Commitment allocated
+        "409":
+          description: Invalid commitment transition
+  /api/v1/investments/activations:
+    post:
+      summary: Activate an allocated commitment
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Commitment active
+  /api/v1/distributions/formula-versions:
+    get:
+      summary: List distribution formula versions
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Formula version list
+    post:
+      summary: Draft a distribution formula version
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Formula version drafted
+        "400":
+          description: Basis, residual policy, or rate is invalid
+  /api/v1/distributions/formula-versions/publish:
+    post:
+      summary: Publish a formula version under independent approval
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Formula version published
+        "409":
+          description: Formula version is already published
+  /api/v1/distributions:
+    get:
+      summary: List distributions for a project
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Distribution list
+    post:
+      summary: Create a distribution proposal from a locked period
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Distribution proposal created
+        "409":
+          description: Period is not locked, formula is unpublished, or no distributable profit exists
+  /api/v1/distributions/calculate:
+    post:
+      summary: Calculate investor entitlements for a distribution
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Entitlements calculated
+        "409":
+          description: No eligible holdings
+  /api/v1/distributions/review:
+    post:
+      summary: Independently review a calculated distribution
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Distribution reviewed
+        "403":
+          description: Four-eyes control failed
+  /api/v1/distributions/approve:
+    post:
+      summary: Approve a reviewed distribution within approval limits
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Distribution approved
+        "403":
+          description: Four-eyes or approval limit control failed
+        "409":
+          description: Distribution has not been reviewed
+  /api/v1/distributions/post-payable:
+    post:
+      summary: Record the posted accounting voucher backing the distribution payable
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Distribution payable posted
+        "409":
+          description: Voucher amount does not match the approved distribution
+  /api/v1/distributions/payment-batches:
+    post:
+      summary: Create a payout batch for payable entitlements
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Payment batch created
+        "409":
+          description: No payable entitlements are available
+  /api/v1/distributions/payment-results:
+    post:
+      summary: Record paid, failed, and returned payout results
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Payment results recorded
+        "400":
+          description: Outcome or failure reason is invalid
+  /api/v1/distributions/entitlements/reissue:
+    post:
+      summary: Reissue a failed or returned entitlement payment
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Entitlement resubmitted for payment
+  /api/v1/distributions/entitlements/hold:
+    post:
+      summary: Place a compliance hold on an entitlement
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Entitlement held
+  /api/v1/distributions/entitlements/release-hold:
+    post:
+      summary: Release an entitlement hold once conditions are cleared
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Entitlement hold released
+        "409":
+          description: Hold condition is still active
+  /api/v1/distributions/entitlements/cancel:
+    post:
+      summary: Cancel a held entitlement with a documented reason
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Entitlement cancelled
+  /api/v1/distributions/reconcile:
+    post:
+      summary: Reconcile a distribution once all payments settle
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Distribution reconciled
+        "409":
+          description: Payments are still outstanding
+  /api/v1/distributions/complete:
+    post:
+      summary: Complete a reconciled distribution
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Distribution completed
+        "409":
+          description: Entitlements remain unresolved
+  /api/v1/distributions/statements/me:
+    get:
+      summary: Current investor distribution statement
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Investor statement
+  /api/v1/projects/settlement/close:
+    post:
+      summary: Record final project settlement after all distributions complete
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Project settled
+        "409":
+          description: Distributions are not completed
+  /api/v1/projects/settlement/archive:
+    post:
+      summary: Archive a settled project under independent approval
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Project settlement archived
+        "403":
+          description: Four-eyes control failed
+  /api/v1/payments/project-accounts:
+    get:
+      summary: List escrow, segregated, and operating project accounts
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Project account list with masked fingerprints
+    post:
+      summary: Register a project bank account
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Project account registered
+        "409":
+          description: Account code exists or a primary collection account already exists
+  /api/v1/payments/bank-transactions:
+    get:
+      summary: List imported bank transactions
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Bank transaction list
+    post:
+      summary: Import a bank statement transaction
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: header
+          name: idempotency-key
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Bank transaction imported, or quarantined as a duplicate
+        "409":
+          description: Account belongs to another project or is not a collection account
+  /api/v1/payments/settlements:
+    post:
+      summary: Ingest a partner settlement file
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: header
+          name: idempotency-key
+          required: true
+          schema:
+            type: string
+      responses:
+        "201":
+          description: Settlement batch imported
+        "400":
+          description: Settlement lines or idempotency key missing
+  /api/v1/payments/providers:
+    get:
+      summary: List registered payment providers and their callback settings
+      responses:
+        "200":
+          description: Provider registry, none enabled for live money movement
+  /api/v1/payments/provider-callbacks:
+    post:
+      summary: Ingest a signed provider settlement callback
+      description: >-
+        Authenticated by HMAC signature rather than a bearer token. Requires
+        x-provider-id, x-provider-signature, x-provider-timestamp, and x-provider-nonce headers.
+      parameters:
+        - in: header
+          name: x-provider-id
+          required: true
+          schema:
+            type: string
+        - in: header
+          name: x-provider-signature
+          required: true
+          schema:
+            type: string
+        - in: header
+          name: x-provider-timestamp
+          required: true
+          schema:
+            type: integer
+        - in: header
+          name: x-provider-nonce
+          required: true
+          schema:
+            type: string
+      responses:
+        "202":
+          description: Callback accepted, or deduplicated against an earlier provider event
+        "401":
+          description: Signature invalid or timestamp outside the tolerance window
+        "404":
+          description: Provider is not registered
+        "409":
+          description: Callback nonce has already been used
+  /api/v1/payments/match-candidates:
+    get:
+      summary: Non-authoritative match candidates for a bank transaction
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Scored candidates with explanations, requiring human decision
+  /api/v1/payments/settlement-status:
+    get:
+      summary: Settlement position of a payment instruction
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Expected, settled, remaining, and approved amounts
+  /api/v1/payments/reconciliations/split:
+    post:
+      summary: Split one bank transaction across several commitments
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Split allocations recorded with residual
+        "409":
+          description: Allocation invalid or exceeds the transaction
+  /api/v1/payments/reconciliations/aggregate:
+    post:
+      summary: Aggregate several bank transactions onto one commitment
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Aggregate match recorded
+        "409":
+          description: A transaction is invalid for aggregation
+  /api/v1/payments/reconciliations/approve:
+    post:
+      summary: Independently approve a matched reconciliation
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Reconciliation approved
+        "403":
+          description: Permission or four-eyes control failed
+  /api/v1/payments/reconciliations/reject:
+    post:
+      summary: Reject a reconciliation with a documented reason
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Reconciliation rejected
+  /api/v1/payments/reconciliations/lock:
+    post:
+      summary: Lock an approved reconciliation against further change
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Reconciliation locked
+        "409":
+          description: Reconciliation is not approved
+  /api/v1/payments/reconciliations/reverse:
+    post:
+      summary: Reverse an unlocked reconciliation and return the transaction
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Reconciliation reversed
+        "409":
+          description: Reconciliation is locked
+  /api/v1/payments/instructions/classify-short:
+    post:
+      summary: Classify a partially settled instruction as underpaid
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Instruction classified as underpaid
+        "409":
+          description: Instruction is not short paid
+  /api/v1/payments/receipts:
+    post:
+      summary: Issue an official receipt for a cleared payment
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: header
+          name: idempotency-key
+          required: true
+          schema:
+            type: string
+      responses:
+        "201":
+          description: Receipt issued
+        "409":
+          description: Payment has not cleared
+  /api/v1/payments/cash-controls:
+    get:
+      summary: List daily cash controls for a project
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Daily cash control list
+    post:
+      summary: Record a daily cash control
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Cash control balanced and recorded
+        "409":
+          description: Control does not balance or already exists for the date
+  /api/v1/refunds/execute:
+    post:
+      summary: Execute an approved refund
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: header
+          name: idempotency-key
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Refund executed
+        "409":
+          description: Refund is not approved
+  /api/v1/accounting/posting-matrix:
+    get:
+      summary: Active and historical posting matrix versions
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Active version and full version history
+    post:
+      summary: Draft a posting matrix version
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Posting matrix version drafted
+        "400":
+          description: Rules missing or reference an unknown voucher type or account type
+        "409":
+          description: A draft version is already awaiting approval
+  /api/v1/accounting/posting-matrix/approve:
+    post:
+      summary: Independently approve a drafted posting matrix version
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Version approved and the previous version superseded
+        "403":
+          description: Permission or four-eyes control failed
+  /api/v1/accounting/opening-balances:
+    post:
+      summary: Record a project opening balance
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Opening balance voucher drafted
+        "409":
+          description: Opening balance already exists or the project has posted activity
+  /api/v1/accounting/vouchers/approve-backdate:
+    post:
+      summary: Independently approve a backdated voucher before posting
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Backdated entry approved
+        "400":
+          description: A documented reason is required
+        "409":
+          description: Voucher does not target an earlier period
+  /api/v1/accounting/reports/sub-ledger:
+    get:
+      summary: Sub-ledger balances for a control account family
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Sub-ledger balances with as-of metadata and checksum
+        "400":
+          description: Unknown sub-ledger
+  /api/v1/accounting/reports/sub-ledger-reconciliation:
+    get:
+      summary: Reconcile every sub-ledger to its control account
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Per-control-account reconciliation with differences
+  /api/v1/accounting/reports/cash-book:
+    get:
+      summary: Cash book with running balance
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Cash book entries
+  /api/v1/accounting/reports/bank-book:
+    get:
+      summary: Bank book with running balance
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Bank book entries
+  /api/v1/accounting/reports/balance-sheet:
+    get:
+      summary: Balance sheet with an asserted accounting identity
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Assets, liabilities, equity, and the current period result
+  /api/v1/accounting/reports/cash-flow:
+    get:
+      summary: Cash flow statement
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Opening balance, inflows, outflows, and closing balance
+  /api/v1/accounting/reports/fund-utilization:
+    get:
+      summary: Investor funds raised against funds deployed
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Fund utilization summary
+  /api/v1/dashboards/investor:
+    get:
+      summary: Investor dashboard with capital, distributions, and KYC actions
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Investor dashboard with control totals and freshness metadata
+  /api/v1/dashboards/project:
+    get:
+      summary: Project dashboard reconciled to the project ledger
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Project dashboard; tiles the caller may not see are marked restricted
+        "403":
+          description: Dashboard permission denied
+  /api/v1/dashboards/administrator:
+    get:
+      summary: Portfolio dashboard across every project in scope
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Administrator dashboard with portfolio control totals
+  /api/v1/reports:
+    get:
+      summary: Report catalogue with sensitivity flags
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Available reports
+  /api/v1/reports/run:
+    get:
+      summary: Run a catalogue report against its authoritative source
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Report rows with as-of metadata and checksum
+        "404":
+          description: Unknown report
+  /api/v1/reports/narrative:
+    get:
+      summary: Draft a non-authoritative narrative from an approved report
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Narrative sentences, each citing the source report checksum
+  /api/v1/exports:
+    get:
+      summary: List export requests
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Export request list
+    post:
+      summary: Request a report export
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Export request created; sensitive unmasked exports await approval
+        "400":
+          description: Format, masking mode, or purpose invalid
+  /api/v1/exports/approve:
+    post:
+      summary: Independently approve a sensitive unmasked export
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Export approved
+        "403":
+          description: Permission or four-eyes control failed
+  /api/v1/exports/reject:
+    post:
+      summary: Reject an export request with a documented reason
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Export rejected
+        "400":
+          description: Reason required
+  /api/v1/exports/generate:
+    post:
+      summary: Generate an approved export with watermark and checksum
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Export generated with an expiring download grant
+        "409":
+          description: Export is not approved
+  /api/v1/documents:
+    get:
+      summary: List documents in scope
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Document list; investors see only their own
+    post:
+      summary: Register a document and its first version
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Document registered
+        "400":
+          description: Unknown document type or classification
+  /api/v1/documents/detail:
+    get:
+      summary: Read a document with its versions and extractions
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Document detail; restricted extractions are masked
+        "403":
+          description: Investor scope denied
+  /api/v1/documents/versions:
+    post:
+      summary: Add an immutable document version
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: New version added and the prior version superseded
+        "400":
+          description: Reason required
+  /api/v1/documents/extractions:
+    post:
+      summary: Record non-authoritative OCR or metadata extraction
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Extraction recorded pending human verification
+  /api/v1/documents/extractions/verify:
+    post:
+      summary: Human verification of an extraction
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Extraction verified and marked authoritative
+        "403":
+          description: Permission or four-eyes control failed
+  /api/v1/documents/download-grants:
+    post:
+      summary: Issue a watermarked expiring download grant
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Download grant issued
+        "400":
+          description: Purpose required or expiry outside the permitted window
+  /api/v1/documents/downloads:
+    post:
+      summary: Redeem a download grant
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Document reference released and the access logged
+        "403":
+          description: Grant belongs to another user
+        "409":
+          description: Grant already used
+        "410":
+          description: Grant expired
+  /api/v1/documents/access-log:
+    get:
+      summary: Document access and export audit log
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Access log entries
+  /api/v1/notifications/templates:
+    get:
+      summary: List notification templates
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Template list
+    post:
+      summary: Draft a notification template
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Template drafted
+        "409":
+          description: A draft already exists for this key, channel, and locale
+  /api/v1/notifications/templates/approve:
+    post:
+      summary: Independently approve a notification template
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Template approved and the prior version superseded
+        "403":
+          description: Four-eyes control failed
+  /api/v1/notifications/preferences:
+    get:
+      summary: Read notification preferences
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Channel and locale preferences
+    patch:
+      summary: Update notification preferences
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Preferences updated
+        "400":
+          description: Unsupported channel or locale
+  /api/v1/notifications:
+    get:
+      summary: List queued and delivered notifications
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Notification list with masked recipient addresses
+    post:
+      summary: Queue a notification from an approved template
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Notification queued, suppressed, or deduplicated
+        "400":
+          description: Template data missing
+        "404":
+          description: No approved template for the channel
+  /api/v1/notifications/process-queue:
+    post:
+      summary: Process due notification deliveries
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Delivery run summary with retry scheduling
+  /api/v1/notifications/delivery-attempts:
+    get:
+      summary: Notification delivery attempt log
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Delivery attempts with outcomes and retry times
+  /api/v1/complaints:
+    get:
+      summary: List complaints in scope
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Complaint queue
+        "403":
+          description: Complaint management permission required
+    post:
+      summary: Register a complaint or whistleblowing report
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Complaint registered; fraud and misuse reports route anonymously
+        "400":
+          description: Category, severity, subject, or description invalid
+  /api/v1/complaints/detail:
+    get:
+      summary: Read a single complaint
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Complaint with derived service level state
+        "403":
+          description: Not the reporter and lacking complaint management permission
+  /api/v1/complaints/triage:
+    post:
+      summary: Triage a complaint and optionally re-set its category or severity
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Complaint triaged
+        "409":
+          description: Invalid complaint transition
+  /api/v1/complaints/assign:
+    post:
+      summary: Assign a complaint to a handler
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Complaint assigned
+        "409":
+          description: Invalid complaint transition
+  /api/v1/complaints/start:
+    post:
+      summary: Start work on an assigned complaint
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Complaint in progress
+        "409":
+          description: Invalid complaint transition
+  /api/v1/complaints/escalate:
+    post:
+      summary: Escalate a complaint with a documented reason
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Complaint escalated
+        "400":
+          description: Escalation reason required
+  /api/v1/complaints/resolve:
+    post:
+      summary: Resolve a complaint with a stated outcome
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Complaint resolved
+        "400":
+          description: Resolution required
+        "403":
+          description: The reporter cannot resolve their own complaint
+  /api/v1/complaints/close:
+    post:
+      summary: Close a resolved complaint
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Complaint closed
+        "409":
+          description: Invalid complaint transition
+  /api/v1/complaints/appeal:
+    post:
+      summary: Appeal a resolved or closed complaint
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Complaint under appeal
+        "400":
+          description: Appeal reason required
+  /api/v1/complaints/withdraw:
+    post:
+      summary: Withdraw a complaint with a stated reason
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Complaint withdrawn
+        "400":
+          description: Withdrawal reason required
+  /api/v1/complaints/sla-breaches:
+    get:
+      summary: Complaints past their acknowledge or resolve deadline
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Service level breach queue
+  /api/v1/complaints/classification:
+    get:
+      summary: Advisory AI classification of a complaint
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Suggested category and severity, non-authoritative and pending human approval
+    post:
+      summary: Apply a classification with a human rationale
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Classification applied and service levels recalculated
+        "400":
+          description: A human rationale is required
+  /api/v1/complaints/draft-response:
+    get:
+      summary: Draft a complaint response from the case record
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Draft response, non-authoritative and pending human approval
+  /api/v1/compliance-cases:
+    get:
+      summary: List compliance and risk cases
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Compliance case list
+    post:
+      summary: Open a compliance or risk case
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Case opened
+        "400":
+          description: Source, severity, or summary invalid
+  /api/v1/compliance-cases/advance:
+    post:
+      summary: Move a compliance case to another state
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Case advanced
+        "409":
+          description: Invalid case transition
+  /api/v1/compliance-cases/resolve:
+    post:
+      summary: Resolve a compliance case
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Case resolved
+        "409":
+          description: Active holds must be released first
+  /api/v1/compliance-cases/links:
+    get:
+      summary: List case links by case or by linked entity
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Case link list
+    post:
+      summary: Link a case to an investor, project, payment, document, voucher, complaint, or distribution
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Case linked
+        "400":
+          description: Unsupported linked entity type
+  /api/v1/governance/holds:
+    get:
+      summary: List governance holds
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Hold register
+    post:
+      summary: Place a governance hold
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Hold placed and propagated to the owning module
+        "409":
+          description: An active hold already exists on this subject
+  /api/v1/governance/holds/release:
+    post:
+      summary: Release a governance hold
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Hold released
+        "400":
+          description: Release reason required
+        "403":
+          description: Permission or four-eyes control failed
+  /api/v1/compliance-rules:
+    get:
+      summary: List compliance rules and their versions
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Rule list
+    post:
+      summary: Draft a compliance rule
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Rule drafted
+        "400":
+          description: Unsupported operator, action, source, or severity
+  /api/v1/compliance-rules/approve:
+    post:
+      summary: Independently approve a drafted rule
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Rule approved and the prior version superseded
+        "403":
+          description: Permission or four-eyes control failed
+  /api/v1/compliance-rules/suspend:
+    post:
+      summary: Suspend an approved rule
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Rule suspended and no longer firing
+        "400":
+          description: Suspension reason required
+  /api/v1/compliance-signals:
+    get:
+      summary: List evaluated compliance signals
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Signal history with matched rules and created cases or holds
+    post:
+      summary: Evaluate a signal against approved compliance rules
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Signal evaluated
+        "400":
+          description: Unsupported signal type
+  /api/v1/audit-portal/trail:
+    get:
+      summary: Search the audit trail across every module
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Matching audit events with a checksum
+        "403":
+          description: Audit portal permission required
+  /api/v1/audit-portal/entity-history:
+    get:
+      summary: Full chronological history for one entity
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Entity history with related compliance cases
+        "400":
+          description: Entity type and identifier required
+  /api/v1/audit-portal/security-events:
+    get:
+      summary: Security-relevant events and document access
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Security event view derived from the audit trail
+  /api/v1/audit-portal/evidence-packages:
+    get:
+      summary: List evidence packages
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Evidence package list
+    post:
+      summary: Build an independent audit evidence package
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Evidence package built in draft
+        "400":
+          description: At least one entity reference is required
+  /api/v1/audit-portal/evidence-packages/seal:
+    post:
+      summary: Seal an evidence package and fix its manifest checksum
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Evidence package sealed and immutable
+        "409":
+          description: Package is already sealed
+  /api/v1/audit-portal/evidence-packages/verify:
+    get:
+      summary: Verify a sealed evidence package against the live trail
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Manifest integrity and per-artefact divergence
+        "409":
+          description: Package is not sealed
+  /api/v1/governance/report:
+    get:
+      summary: Board-ready governance summary
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Cases, holds, financial controls, and export approvals
+  /api/v1/governance/regulatory-templates:
+    get:
+      summary: Enumerate regulatory reporting templates
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Templates with their measures and approval state
+  /api/v1/governance/regulatory-report:
+    get:
+      summary: Produce a regulatory report from an enumerated template
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Report measures with submission approval state
+        "400":
+          description: Template requires a project
+        "404":
+          description: Unknown regulatory template
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer

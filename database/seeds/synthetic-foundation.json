@@ -1,0 +1,13 @@
+{
+  "organization": {
+    "organizationId": "org_demo",
+    "name": "CrowdFund360 Demo Organization"
+  },
+  "project": {
+    "projectId": "project_agro_001",
+    "title": "Synthetic Agro Processing Pilot",
+    "status": "Draft",
+    "currency": "BDT"
+  },
+  "note": "Synthetic demo data only. Do not seed real PII, NID, bank, or production records."
+}
